@@ -1,0 +1,23 @@
+# Project for the root app only. It can create Argo CD objects in the argocd
+# namespace and nothing else, so a bad commit to argocd/ cannot reach
+# workloads or cluster-wide resources through the root app.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  description: Root app, manages Argo CD objects only
+  sourceRepos:
+    - https://github.com/Walaskien/gitops-argocd.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - group: argoproj.io
+      kind: AppProject
+    - group: argoproj.io
+      kind: Application
+    - group: argoproj.io
+      kind: ApplicationSet

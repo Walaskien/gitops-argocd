@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: demo
+  namespace: argocd
+  annotations:
+    # The ApplicationSet refers to this project, so it has to exist first.
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  description: Workloads of the echo app, one namespace per environment
+  sourceRepos:
+    - https://github.com/Walaskien/gitops-argocd.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: echo-*
+  # Namespace is needed because the apps use CreateNamespace=true.
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  orphanedResources:
+    warn: true

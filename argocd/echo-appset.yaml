@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: echo
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          - env: dev
+          - env: prod-like
+  template:
+    metadata:
+      name: "echo-{{ .env }}"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: demo
+      source:
+        repoURL: https://github.com/Walaskien/gitops-argocd.git
+        targetRevision: main
+        path: "apps/echo/overlays/{{ .env }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "echo-{{ .env }}"
+      syncPolicy:
+        automated:
+          # prune: a file removed from Git removes the object.
+          # selfHeal: a manual kubectl change is put back.
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+        managedNamespaceMetadata:
+          labels:
+            pod-security.kubernetes.io/enforce: restricted
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 1m
