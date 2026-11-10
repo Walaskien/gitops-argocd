@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: echo-dev
+resources:
+  - ../../base
+# includeSelectors stays off: selectors are immutable on a Deployment.
+labels:
+  - pairs:
+      environment: dev
+    includeSelectors: false
+    includeTemplates: true
+images:
+  - name: ghcr.io/stefanprodan/podinfo
+    newTag: 6.9.1
+replicas:
+  - name: echo
+    count: 1
+configMapGenerator:
+  - name: echo-config
+    behavior: merge
+    literals:
+      - message=hello from dev

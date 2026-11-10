@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: echo-prod-like
+resources:
+  - ../../base
+  - pdb.yaml
+labels:
+  - pairs:
+      environment: prod-like
+    includeSelectors: false
+    includeTemplates: true
+# Lags behind dev on purpose. A version reaches this file only after it has
+# run in dev, through its own pull request.
+images:
+  - name: ghcr.io/stefanprodan/podinfo
+    newTag: 6.8.0
+replicas:
+  - name: echo
+    count: 2
+configMapGenerator:
+  - name: echo-config
+    behavior: merge
+    literals:
+      - message=hello from prod-like
+patches:
+  - path: resources.yaml
