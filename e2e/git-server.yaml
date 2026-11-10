@@ -1,0 +1,45 @@
+# Applied by scripts/e2e.sh. The image is built from e2e/git-server and loaded
+# into kind, so it is never pulled.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: git
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: git-server
+  namespace: git
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: git-server
+  template:
+    metadata:
+      labels:
+        app: git-server
+    spec:
+      containers:
+        - name: git-server
+          image: e2e-git-server:local
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: git-server
+  namespace: git
+spec:
+  selector:
+    app: git-server
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

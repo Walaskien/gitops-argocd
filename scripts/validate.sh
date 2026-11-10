@@ -46,6 +46,9 @@ step "argo cd objects: schema and policy"
 kubeconform_retry bootstrap argocd
 conftest test --policy policy bootstrap/*.yaml argocd/*.yaml
 
+step "e2e helper manifests: schema"
+kubeconform_retry e2e/git-server.yaml
+
 # Rendering is what Argo CD applies, so the schema and policy checks run on
 # the kustomize output and not on the source files.
 for overlay in apps/echo/overlays/*/; do
