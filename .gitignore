@@ -1,0 +1,5 @@
+.venv/
+.kubeconfig
+.tmp/
+*.bak
+.DS_Store
