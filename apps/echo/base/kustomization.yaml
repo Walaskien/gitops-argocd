@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+  - service.yaml
+  - networkpolicy.yaml
+# A generated ConfigMap gets a content hash in its name, so editing the
+# message in Git rolls the pods without anyone touching the Deployment.
+configMapGenerator:
+  - name: echo-config
+    literals:
+      - message=hello from base
