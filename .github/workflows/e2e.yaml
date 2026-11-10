@@ -1,0 +1,28 @@
+name: e2e
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  argocd-on-kind:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: helm/kind-action@v1.14.0
+        with:
+          version: v0.31.0
+          node_image: kindest/node:v1.34.3
+          cluster_name: gitops-e2e
+      - name: Install Argo CD, bootstrap, change Git, cause drift
+        run: scripts/e2e.sh
