@@ -88,16 +88,18 @@ Run on my machine while writing this:
 - The test git remote image builds, and a stock git client can push, clone, fetch, revert and `ls-remote` against it over HTTP (docker network only, no published ports).
 - podinfo starts with a non-root user, read-only filesystem and all capabilities dropped, and answers `/`, `/healthz` and `/readyz`.
 
-Checked in CI, not on my machine:
+On GitHub Actions (runs on `main`, 11 Nov 2026):
 
-- `validate` runs the same script on every pull request and push to main.
-- `e2e` creates a kind cluster, installs Argo CD, applies `bootstrap/`, waits for root, `echo-dev` and `echo-prod-like` to be Synced and Healthy, and then:
+- `validate` runs the same script as above on every pull request and push to main. It is green, the job takes about 15 seconds.
+- `e2e` creates a kind cluster (kind v0.31.0, Kubernetes 1.34.3), installs Argo CD v3.3.18 and applies `bootstrap/`. It waits for root, `echo-dev` and `echo-prod-like` to be Synced and Healthy, and then:
   - bumps the dev version in Git and waits until the app is at that commit and serves the new version, with prod-like untouched,
   - reverts that commit and waits for the old version,
   - scales a Deployment, deletes a NetworkPolicy and edits an image by hand, and waits for each to be put back,
   - adds a ConfigMap to Git and waits for it to appear, removes it and waits for it to be pruned.
 
-I have not run `e2e` on a laptop. The badges above show its current state on GitHub.
+  The whole job takes about two and a half minutes, the script itself about a minute and a half, and it printed 29 passed checks. It has been green on two runs in a row. The very first run failed: `kubectl wait` trips over a CRD that has no status yet right after the apply, so the script now polls for `Established` itself (commit 560d672).
+
+`e2e` never ran on my laptop, only on GitHub's runners. The badges above show the current state.
 
 ## Limitations
 
