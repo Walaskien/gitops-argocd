@@ -106,6 +106,7 @@ app_at() { # app revision
 # or the Refresh button does, so the test does not sit idle.
 refresh() { kubectl -n argocd annotate app "$1" argocd.argoproj.io/refresh=hard --overwrite >/dev/null; }
 
+crd_established() { [[ $(kubectl get crd "$1" -o jsonpath='{.status.conditions[?(@.type=="Established")].status}') == True ]]; }
 ns_enforces_restricted() {
   [[ $(kubectl get ns "$1" -o go-template='{{index .metadata.labels "pod-security.kubernetes.io/enforce"}}') == restricted ]]
 }
@@ -149,8 +150,10 @@ kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f - >/
 # server-side: the ApplicationSet CRD is too large for client-side apply
 kubectl apply -n argocd --server-side --force-conflicts \
   -f "https://raw.githubusercontent.com/argoproj/argo-cd/$ARGOCD_VERSION/manifests/core-install.yaml" >/dev/null
-kubectl wait --for=condition=Established --timeout=60s \
-  crd/applications.argoproj.io crd/appprojects.argoproj.io crd/applicationsets.argoproj.io >/dev/null
+# kubectl wait fails outright while a new CRD has no status yet, so poll
+for crd in applications appprojects applicationsets; do
+  wait_for "CRD $crd.argoproj.io is established" 60 crd_established "$crd.argoproj.io"
+done
 kubectl -n argocd rollout status deploy/argocd-redis --timeout=240s
 kubectl -n argocd rollout status deploy/argocd-repo-server --timeout=240s
 kubectl -n argocd rollout status deploy/argocd-applicationset-controller --timeout=240s
