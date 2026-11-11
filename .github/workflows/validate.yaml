@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install tools
         run: |
           scripts/install-tools.sh "$HOME/.local/bin"
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: shellcheck
         run: docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:v0.10.0 scripts/*.sh e2e/git-server/entrypoint.sh e2e/git-server/git.cgi
       - name: actionlint
